@@ -46,25 +46,32 @@ export async function createProject(data: CreateProjectData) {
         creator_id: user.id,
         category: basicInfo.category,
         funding_type: "milestone",
-        funding_goal: basicInfo.fundingGoal,
-        current_funding: 0,
+        goal_amount: basicInfo.fundingGoal,
+        current_amount: 0,
         status,
         deadline: basicInfo.deadline.toISOString(),
-        image_url: basicInfo.imageUrl || null,
+        cover_image: basicInfo.imageUrl || null,
       })
       .select()
       .single();
 
     if (projectError) throw projectError;
 
-    const milestonesData = milestones.map((m) => ({
-      project_id: project.id,
-      title: m.title,
-      description: m.description,
-      funding_target: m.fundingTarget,
-      order: m.order,
-      status: "pending" as const,
-    }));
+    const milestonesData = milestones.map((m, index) => {
+      const baseDeadlineDays = 30;
+      const deadlineDays = baseDeadlineDays + (index * 15);
+      
+      return {
+        project_id: project.id,
+        title: m.title,
+        description: m.description,
+        goal_amount: m.fundingTarget,
+        current_amount: 0,
+        order_index: m.order_index,
+        deadline_days: deadlineDays,
+        status: "pending" as const,
+      };
+    });
 
     const { error: milestonesError } = await supabase
       .from("milestones")
