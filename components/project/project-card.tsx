@@ -103,11 +103,11 @@ export function ProjectCard({
             <div className="flex justify-between text-sm">
               <div>
                 <span className="font-bold text-primary-600">
-                  ${currentFunding.toLocaleString()}
+                  ${currentFunding}
                 </span>
                 <span className="text-muted-foreground">
                   {" "}
-                  of ${fundingGoal.toLocaleString()}
+                  of ${fundingGoal}
                 </span>
               </div>
               <div className="text-muted-foreground">

@@ -104,10 +104,10 @@ export function MilestoneProgress({
             <Progress value={totalFunding} max={totalGoal} className="h-3" />
             <div className="flex justify-between text-sm">
               <span className="font-bold text-primary-600 text-lg">
-                ${totalFunding.toLocaleString()}
+                ${totalFunding}
               </span>
               <span className="text-muted-foreground">
-                ${totalGoal.toLocaleString()} goal
+                ${totalGoal} goal
               </span>
             </div>
           </div>
@@ -164,7 +164,7 @@ export function MilestoneProgress({
                       </div>
                       <div className="text-right flex-shrink-0">
                         <div className="font-bold text-primary-600 text-lg">
-                          ${milestone.fundingTarget.toLocaleString()}
+                          ${milestone.fundingTarget}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           target
@@ -180,7 +180,7 @@ export function MilestoneProgress({
                       <div className="flex justify-between text-sm">
                         <span>
                           <span className="font-semibold">
-                            ${milestone.currentFunding.toLocaleString()}
+                            ${milestone.currentFunding}
                           </span>{" "}
                           <span className="text-muted-foreground">raised</span>
                         </span>

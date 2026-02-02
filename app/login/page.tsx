@@ -121,7 +121,7 @@ export default function LoginPage() {
               </Button>
 
               <p className="text-xs text-center text-muted-foreground">
-                We&apos;ll send a 6-digit code to your email
+                We&apos;ll send a 8-digit code to your email
               </p>
             </form>
           ) : (
@@ -135,11 +135,11 @@ export default function LoginPage() {
                 <Input
                   id="code"
                   type="text"
-                  placeholder="Enter 6-digit code"
+                  placeholder="Enter 8-digit code"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   required
-                  maxLength={6}
+                  maxLength={8}
                   className="text-center text-2xl tracking-widest"
                 />
               </div>

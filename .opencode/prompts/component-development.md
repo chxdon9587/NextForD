@@ -205,10 +205,10 @@ export function ProjectCard({
         <Progress value={Math.min(100, fundingPercentage)} />
         <div className="flex justify-between text-sm">
           <span className="font-semibold">
-            ${project.current_amount.toLocaleString()}
+            ${project.current_amount}
           </span>
           <span className="text-muted-foreground">
-            of ${project.goal_amount.toLocaleString()}
+            of ${project.goal_amount}
           </span>
         </div>
         <div className="flex justify-between text-sm text-muted-foreground">

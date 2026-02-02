@@ -304,10 +304,10 @@ Photos coming soon in the next update!`,
                 <CardContent className="p-6 space-y-6">
                   <div>
                     <div className="text-3xl font-bold text-primary-600 mb-1">
-                      ${displayProject.current_funding.toLocaleString()}
+                      ${displayProject.current_funding}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      pledged of ${displayProject.funding_goal.toLocaleString()} goal
+                      pledged of ${displayProject.funding_goal} goal
                     </p>
                   </div>
 
