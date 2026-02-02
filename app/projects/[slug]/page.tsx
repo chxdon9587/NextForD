@@ -385,7 +385,7 @@ Photos coming soon in the next update!`,
                 <CardContent>
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold text-lg">
-                      {displayProject.users.username[0]?.toUpperCase()}
+                      {displayProject.users.username[0].toUpperCase()}
                     </div>
                     <div>
                       <div className="font-semibold">
