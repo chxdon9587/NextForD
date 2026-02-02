@@ -16,7 +16,7 @@ export default async function ProjectsPage() {
         avatar_url
       )
     `)
-    .eq("status", "live")
+    .in("status", ["live", "approved"])
     .order("created_at", { ascending: false })
     .limit(12);
 
@@ -27,11 +27,11 @@ export default async function ProjectsPage() {
       title: "Ultra-Detailed 3D Printed Miniatures Collection",
       description:
         "High-quality, customizable 3D printed miniatures for tabletop gaming enthusiasts. 28mm scale with incredible detail.",
-      image_url: null,
+      cover_image: null,
       category: "miniatures",
       status: "live",
-      funding_goal: 10000,
-      current_funding: 7500,
+      goal_amount: 10000,
+      current_amount: 7500,
       deadline: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
       creator_id: "1",
       users: {
@@ -45,11 +45,11 @@ export default async function ProjectsPage() {
       title: "Customizable 3D Printed Phone Stands",
       description:
         "Ergonomic, adjustable phone stands with custom color options. Perfect for desk setup enthusiasts.",
-      image_url: null,
+      cover_image: null,
       category: "accessories",
       status: "live",
-      funding_goal: 5000,
-      current_funding: 6200,
+      goal_amount: 5000,
+      current_amount: 6200,
       deadline: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000),
       creator_id: "2",
       users: {
@@ -63,11 +63,11 @@ export default async function ProjectsPage() {
       title: "Modular 3D Printed Desk Organizer System",
       description:
         "Build your perfect desk setup with interlocking modular organizer pieces. Customizable and expandable.",
-      image_url: null,
+      cover_image: null,
       category: "organization",
       status: "live",
-      funding_goal: 8000,
-      current_funding: 3200,
+      goal_amount: 8000,
+      current_amount: 3200,
       deadline: new Date(Date.now() + 22 * 24 * 60 * 60 * 1000),
       creator_id: "3",
       users: {
@@ -187,11 +187,11 @@ export default async function ProjectsPage() {
                     slug={project.slug}
                     title={project.title}
                     description={project.description}
-                    imageUrl={project.image_url}
+                    imageUrl={project.cover_image}
                     category={project.category}
                     status={project.status}
-                    fundingGoal={project.funding_goal}
-                    currentFunding={project.current_funding}
+                    fundingGoal={project.goal_amount}
+                    currentFunding={project.current_amount}
                     backersCount={backersCount}
                     creatorName={project.users?.username || "Unknown"}
                     deadline={new Date(project.deadline)}

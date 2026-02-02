@@ -263,7 +263,7 @@ pnpm dev
 5. **步骤3：** 查看确认页面
 6. 检查数据库：
    - backings表有新记录
-   - project的current_funding已更新（由trigger）
+   - project的current_amount已更新（由trigger）
 
 ### 4. 测试图片上传
 1. 在创建项目时
@@ -339,7 +339,7 @@ USING (bucket_id = 'projects');
 → 进入支付页面
 → Server Action (createBacking)
 → 插入 backings 表
-→ Trigger 更新 project.current_funding
+→ Trigger 更新 project.current_amount
 → Trigger 更新 milestone 状态
 → 返回 backingId
 → 显示确认页面

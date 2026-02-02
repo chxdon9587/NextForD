@@ -9,7 +9,7 @@ interface Milestone {
   fundingTarget: number;
   currentFunding: number;
   status: "pending" | "in_progress" | "completed" | "verified" | "failed";
-  order: number;
+  order_index: number;
 }
 
 interface MilestoneProgressProps {
@@ -23,7 +23,7 @@ export function MilestoneProgress({
   totalFunding,
   totalGoal,
 }: MilestoneProgressProps) {
-  const sortedMilestones = [...milestones].sort((a, b) => a.order - b.order);
+  const sortedMilestones = [...milestones].sort((a, b) => a.order_index - b.order_index);
 
   const getStatusColor = (status: Milestone["status"]) => {
     switch (status) {

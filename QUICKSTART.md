@@ -148,7 +148,7 @@ open http://localhost:3000
 3. 选择$50奖励
 4. 确认支付信息
 5. 查看确认页面
-6. 检查数据库：backings表，current_funding更新
+6. 检查数据库：backings表，current_amount更新
 
 ### 场景3：草稿保存
 1. 开始创建项目
@@ -174,7 +174,7 @@ open http://localhost:3000
 - ✅ follows（关注）
 
 ### 已部署的功能（触发器）
-- ✅ 自动更新current_funding（backing创建时）
+- ✅ 自动更新current_amount（backing创建时）
 - ✅ 自动更新milestone状态（达成目标时）
 - ✅ 自动生成project slug
 - ✅ 自动更新timestamps

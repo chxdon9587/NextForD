@@ -39,7 +39,7 @@ export const milestoneSchema = z.object({
   fundingTarget: z
     .number()
     .min(100, "Funding target must be at least $100"),
-  order: z.number().int().min(1),
+  order_index: z.number().int().min(1),
 });
 
 export const rewardSchema = z.object({

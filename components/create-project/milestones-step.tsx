@@ -30,7 +30,7 @@ export function MilestonesStep({
             title: "",
             description: "",
             fundingTarget: Math.floor(fundingGoal * 0.33),
-            order: 1,
+            order_index: 1,
           },
         ]
   );
@@ -45,7 +45,7 @@ export function MilestonesStep({
         title: "",
         description: "",
         fundingTarget: Math.max(100, remainingFunding),
-        order: newOrder,
+        order_index: newOrder,
       },
     ]);
   };
@@ -54,7 +54,7 @@ export function MilestonesStep({
     if (milestones.length > 1) {
       const updated = milestones.filter((_, i) => i !== index);
       updated.forEach((m, i) => {
-        m.order = i + 1;
+        m.order_index = i + 1;
       });
       setMilestones(updated);
     }

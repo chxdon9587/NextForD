@@ -82,7 +82,7 @@ SELECT * FROM storage.buckets WHERE name = 'projects';
 ### 使用Next.js Image组件
 ```tsx
 <Image
-  src={project.image_url}
+  src={project.cover_image}
   alt={project.title}
   width={800}
   height={450}
@@ -131,7 +131,7 @@ if (result.url) {
 import Image from "next/image";
 
 <Image
-  src={project.image_url}
+  src={project.cover_image}
   alt={project.title}
   width={800}
   height={450}

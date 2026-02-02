@@ -79,15 +79,21 @@ export async function createProject(data: CreateProjectData) {
 
     if (milestonesError) throw milestonesError;
 
-    const rewardsData = rewards.map((r) => ({
+    const rewardsData = rewards.map((r, index) => ({
       project_id: project.id,
       title: r.title,
       description: r.description,
-      pledge_amount: r.pledgeAmount,
-      estimated_delivery: r.estimatedDelivery.toISOString(),
-      backer_limit: r.backerLimit || null,
-      shipping_type: r.shippingType,
-      backers_count: 0,
+      amount: r.pledgeAmount,
+      quantity_total: r.backerLimit || null,
+      quantity_claimed: 0,
+      is_limited: r.backerLimit ? true : false,
+      estimated_delivery: r.estimatedDelivery.toISOString().split('T')[0],
+      shipping_required: r.shippingType !== 'digital',
+      shipping_locations: r.shippingType === 'worldwide' ? ['worldwide'] : 
+                         r.shippingType === 'domestic' ? ['domestic'] :
+                         r.shippingType === 'local' ? ['local'] : [],
+      order_index: index + 1,
+      is_active: true,
     }));
 
     const { error: rewardsError } = await supabase

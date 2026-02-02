@@ -6,11 +6,16 @@ interface RewardCardProps {
   id: string;
   title: string;
   description: string;
-  pledgeAmount: number;
+  amount?: number;
+  pledgeAmount?: number;
   estimatedDelivery?: Date;
+  estimated_delivery?: string;
   backerLimit?: number;
-  backersCount: number;
+  quantity_total?: number;
+  backersCount?: number;
+  quantity_claimed?: number;
   shippingType?: string;
+  shipping_required?: boolean;
   onSelect?: () => void;
   isSelected?: boolean;
   disabled?: boolean;
@@ -19,18 +24,29 @@ interface RewardCardProps {
 export function RewardCard({
   title,
   description,
+  amount,
   pledgeAmount,
   estimatedDelivery,
+  estimated_delivery,
   backerLimit,
+  quantity_total,
   backersCount,
+  quantity_claimed,
   shippingType,
+  shipping_required,
   onSelect,
   isSelected,
   disabled,
 }: RewardCardProps) {
-  const isSoldOut = backerLimit ? backersCount >= backerLimit : false;
+  const actualAmount = amount || pledgeAmount || 0;
+  const actualBackerLimit = quantity_total || backerLimit;
+  const actualBackersCount = quantity_claimed || backersCount || 0;
+  const actualDelivery = estimatedDelivery || (estimated_delivery ? new Date(estimated_delivery) : undefined);
+  const actualShipping = shipping_required === false ? 'digital' : (shippingType || 'worldwide');
+  
+  const isSoldOut = actualBackerLimit ? actualBackersCount >= actualBackerLimit : false;
   const isDisabled = disabled || isSoldOut;
-  const availableSpots = backerLimit ? backerLimit - backersCount : null;
+  const availableSpots = actualBackerLimit ? actualBackerLimit - actualBackersCount : null;
 
   return (
     <Card
@@ -43,9 +59,9 @@ export function RewardCard({
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div>
-            <div className="text-2xl font-bold text-primary-600 mb-1">
-              ${pledgeAmount}
-            </div>
+          <div className="text-2xl font-bold text-primary-600 mb-1">
+            ${actualAmount}
+          </div>
             <h4 className="font-semibold text-lg">{title}</h4>
           </div>
           {isSoldOut && (
@@ -63,7 +79,7 @@ export function RewardCard({
         </p>
 
         <div className="space-y-2 pt-2 border-t">
-          {estimatedDelivery && (
+          {actualDelivery && (
             <div className="flex items-center gap-2 text-sm">
               <svg
                 className="w-4 h-4 text-muted-foreground"
@@ -81,7 +97,7 @@ export function RewardCard({
               <span className="text-muted-foreground">
                 Estimated delivery:{" "}
                 <span className="text-foreground font-medium">
-                  {estimatedDelivery.toLocaleDateString("en-US", {
+                  {actualDelivery.toLocaleDateString("en-US", {
                     month: "short",
                     year: "numeric",
                   })}
@@ -90,7 +106,7 @@ export function RewardCard({
             </div>
           )}
 
-          {shippingType && (
+          {actualShipping && (
             <div className="flex items-center gap-2 text-sm">
               <svg
                 className="w-4 h-4 text-muted-foreground"
@@ -108,7 +124,7 @@ export function RewardCard({
               <span className="text-muted-foreground">
                 Shipping:{" "}
                 <span className="text-foreground font-medium capitalize">
-                  {shippingType}
+                  {actualShipping}
                 </span>
               </span>
             </div>
@@ -129,8 +145,8 @@ export function RewardCard({
               />
             </svg>
             <span className="text-muted-foreground">
-              <span className="text-foreground font-medium">{backersCount}</span>{" "}
-              {backersCount === 1 ? "backer" : "backers"}
+              <span className="text-foreground font-medium">{actualBackersCount}</span>{" "}
+              {actualBackersCount === 1 ? "backer" : "backers"}
             </span>
           </div>
         </div>

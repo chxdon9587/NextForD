@@ -61,12 +61,12 @@ Our collection includes:
 ## The Team
 
 We're a team of passionate 3D artists and tabletop gamers with 5+ years of experience in miniature design.`,
-    image_url: null,
+    cover_image: null,
     category: "miniatures",
     status: "live",
     funding_type: "milestone",
-    funding_goal: 10000,
-    current_funding: 7500,
+    goal_amount: 10000,
+    current_amount: 7500,
     deadline: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
     creator_id: "1",
     created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
@@ -81,24 +81,40 @@ We're a team of passionate 3D artists and tabletop gamers with 5+ years of exper
         id: "m1",
         title: "Design & Prototyping",
         description: "Complete all character designs and create test prints",
-        funding_target: 3000,
-        order: 1,
+        goal_amount: 3000,
+        order_index: 1,
         status: "verified",
       },
       {
         id: "m2",
         title: "Hero Collection",
         description: "Finalize and deliver 10 hero miniatures",
-        funding_target: 6000,
-        order: 2,
+        goal_amount: 6000,
+        order_index: 2,
         status: "in_progress",
       },
       {
         id: "m3",
         title: "Monster Pack",
         description: "Complete monster collection with 15 unique creatures",
-        funding_target: 10000,
-        order: 3,
+        goal_amount: 10000,
+        order_index: 3,
+        status: "pending",
+      },
+      {
+        id: "m2",
+        title: "Hero Collection",
+        description: "Finalize and deliver 10 hero miniatures",
+        goal_amount: 6000,
+        order_index: 2,
+        status: "in_progress",
+      },
+      {
+        id: "m3",
+        title: "Monster Pack",
+        description: "Complete monster collection with 15 unique creatures",
+        goal_amount: 10000,
+        order_index: 3,
         status: "pending",
       },
     ],
@@ -107,45 +123,51 @@ We're a team of passionate 3D artists and tabletop gamers with 5+ years of exper
         id: "r1",
         title: "Digital Supporter",
         description: "- Digital thank you card\n- Project updates\n- Early access to designs",
-        pledge_amount: 10,
-        estimated_delivery: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
-        backer_limit: null,
-        shipping_type: "digital",
+        amount: 10,
+        estimated_delivery: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        quantity_total: null,
+        quantity_claimed: 0,
+        shipping_required: false,
       },
       {
         id: "r2",
         title: "Hero Pack",
         description: "- All Digital Supporter rewards\n- 5 hero miniatures (your choice)\n- STL files for personal printing",
-        pledge_amount: 50,
-        estimated_delivery: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
-        backer_limit: 100,
-        shipping_type: "worldwide",
+        amount: 50,
+        estimated_delivery: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        quantity_total: 100,
+        quantity_claimed: 23,
+        shipping_required: true,
       },
       {
         id: "r3",
         title: "Complete Collection",
         description: "- All previous rewards\n- Full 10-hero collection\n- Monster pack (15 miniatures)\n- Exclusive backer-only design\n- Premium packaging",
-        pledge_amount: 150,
-        estimated_delivery: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString(),
-        backer_limit: 50,
-        shipping_type: "worldwide",
+        amount: 150,
+        estimated_delivery: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        quantity_total: 50,
+        quantity_claimed: 12,
+        shipping_required: true,
       },
     ],
   };
 
   const displayProject = project || mockProject;
 
-  const backersCount = 85;
+  const backersCount = displayProject.backer_count || 85;
   const daysLeft = Math.ceil(
     (new Date(displayProject.deadline).getTime() - Date.now()) /
       (1000 * 60 * 60 * 24)
   );
-  const fundingPercentage =
-    (displayProject.current_funding / displayProject.funding_goal) * 100;
+  const currentFunding = displayProject.current_amount || displayProject.current_funding || 0;
+  const fundingGoal = displayProject.goal_amount || displayProject.funding_goal || 0;
+  const fundingPercentage = (currentFunding / fundingGoal) * 100;
 
+  const projectCurrentFunding = currentFunding;
   const milestonesWithFunding = displayProject.milestones.map((m: any) => ({
     ...m,
-    currentFunding: m.status === "verified" ? m.funding_target : m.status === "in_progress" ? displayProject.current_funding : 0,
+    fundingTarget: m.goal_amount || m.funding_target,
+    currentFunding: m.current_amount || (m.status === "verified" ? m.goal_amount : m.status === "in_progress" ? projectCurrentFunding : 0),
   }));
 
   const mockComments = [
@@ -259,8 +281,8 @@ Photos coming soon in the next update!`,
               <h2 className="text-2xl font-bold mb-6">Funding Milestones</h2>
               <MilestoneProgress
                 milestones={milestonesWithFunding}
-                totalFunding={displayProject.current_funding}
-                totalGoal={displayProject.funding_goal}
+                totalFunding={currentFunding}
+                totalGoal={fundingGoal}
               />
             </div>
 
@@ -304,16 +326,16 @@ Photos coming soon in the next update!`,
                 <CardContent className="p-6 space-y-6">
                   <div>
                     <div className="text-3xl font-bold text-primary-600 mb-1">
-                      ${displayProject.current_funding}
+                      ${currentFunding.toLocaleString()}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      pledged of ${displayProject.funding_goal} goal
+                      pledged of ${fundingGoal.toLocaleString()} goal
                     </p>
                   </div>
 
                   <Progress
-                    value={displayProject.current_funding}
-                    max={displayProject.funding_goal}
+                    value={currentFunding}
+                    max={fundingGoal}
                     className="h-2"
                   />
 
