@@ -9,6 +9,7 @@ import { BasicInfoStep } from "@/components/create-project/basic-info-step";
 import { MilestonesStep } from "@/components/create-project/milestones-step";
 import { RewardsStep } from "@/components/create-project/rewards-step";
 import { ReviewStep } from "@/components/create-project/review-step";
+import { publishProject, saveDraft } from "@/app/actions/project";
 import type { ProjectBasicInfo, Milestone, Reward } from "@/lib/validations/project";
 
 type Step = "basic" | "milestones" | "rewards" | "review";
@@ -61,18 +62,44 @@ export default function CreateProjectPage() {
     setCurrentStep("review");
   };
 
+  const [publishing, setPublishing] = useState(false);
+  const [saving, setSaving] = useState(false);
+
   const handlePublish = async () => {
     if (!basicInfo) return;
 
-    const projectData = {
-      ...basicInfo,
+    setPublishing(true);
+    const result = await publishProject({
+      basicInfo,
       milestones,
       rewards,
-    };
+    });
 
-    console.log("Publishing project:", projectData);
-    alert("Project published! (Mock - database not deployed)");
-    router.push("/dashboard");
+    if (result.error) {
+      alert(`Error: ${result.error}`);
+      setPublishing(false);
+    } else if (result.success) {
+      alert("Project submitted for review! Redirecting to dashboard...");
+      router.push("/dashboard");
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    if (!basicInfo) return;
+
+    setSaving(true);
+    const result = await saveDraft({
+      basicInfo,
+      milestones,
+      rewards,
+    });
+
+    if (result.error) {
+      alert(`Error: ${result.error}`);
+    } else if (result.success) {
+      alert("Draft saved successfully!");
+    }
+    setSaving(false);
   };
 
   return (
@@ -167,7 +194,10 @@ export default function CreateProjectPage() {
                 milestones={milestones}
                 rewards={rewards}
                 onPublish={handlePublish}
+                onSaveDraft={handleSaveDraft}
                 onBack={() => setCurrentStep("rewards")}
+                publishing={publishing}
+                saving={saving}
               />
             )}
           </CardContent>

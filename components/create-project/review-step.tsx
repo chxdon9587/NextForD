@@ -11,7 +11,10 @@ interface ReviewStepProps {
   milestones: Milestone[];
   rewards: Reward[];
   onPublish: () => void;
+  onSaveDraft: () => void;
   onBack: () => void;
+  publishing?: boolean;
+  saving?: boolean;
 }
 
 export function ReviewStep({
@@ -19,7 +22,10 @@ export function ReviewStep({
   milestones,
   rewards,
   onPublish,
+  onSaveDraft,
   onBack,
+  publishing = false,
+  saving = false,
 }: ReviewStepProps) {
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-US", {
@@ -209,15 +215,15 @@ export function ReviewStep({
       </div>
 
       <div className="flex justify-between pt-4 border-t">
-        <Button type="button" variant="outline" onClick={onBack}>
+        <Button type="button" variant="outline" onClick={onBack} disabled={publishing || saving}>
           Back
         </Button>
         <div className="flex gap-2">
-          <Button type="button" variant="outline">
-            Save as Draft
+          <Button type="button" variant="outline" onClick={onSaveDraft} disabled={publishing || saving}>
+            {saving ? "Saving..." : "Save as Draft"}
           </Button>
-          <Button type="button" onClick={onPublish}>
-            Publish Project
+          <Button type="button" onClick={onPublish} disabled={publishing || saving}>
+            {publishing ? "Publishing..." : "Publish Project"}
           </Button>
         </div>
       </div>

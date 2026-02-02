@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
+import { ImageUpload } from "./image-upload";
 import { projectBasicInfoSchema, type ProjectBasicInfo } from "@/lib/validations/project";
 
 interface BasicInfoStepProps {
@@ -22,6 +23,7 @@ export function BasicInfoStep({ initialData, onComplete, onBack }: BasicInfoStep
     handleSubmit,
     formState: { errors },
     watch,
+    setValue,
   } = useForm<ProjectBasicInfo>({
     resolver: zodResolver(projectBasicInfoSchema),
     defaultValues: initialData || {
@@ -30,10 +32,12 @@ export function BasicInfoStep({ initialData, onComplete, onBack }: BasicInfoStep
       category: "miniatures",
       fundingGoal: 5000,
       deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      imageUrl: "",
     },
   });
 
   const description = watch("description");
+  const imageUrl = watch("imageUrl");
 
   const onSubmit = (data: ProjectBasicInfo) => {
     onComplete(data);
@@ -129,26 +133,15 @@ export function BasicInfoStep({ initialData, onComplete, onBack }: BasicInfoStep
         </p>
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex gap-3">
-          <svg
-            className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <div className="text-sm text-blue-800">
-            <p className="font-semibold mb-1">Image Upload Coming Soon</p>
-            <p>
-              Image upload functionality will be available after database deployment. For now, you can continue without images.
-            </p>
-          </div>
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="imageUrl">Project Image (Optional)</Label>
+        <ImageUpload
+          value={imageUrl}
+          onChange={(url) => setValue("imageUrl", url)}
+        />
+        <p className="text-sm text-muted-foreground">
+          Upload a cover image for your project. This will be displayed on the project listing and detail pages.
+        </p>
       </div>
 
       <div className="flex justify-between pt-4 border-t">
