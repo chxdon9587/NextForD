@@ -144,29 +144,8 @@ DROP TRIGGER IF EXISTS trigger_assign_backer_role ON public.users;
 CREATE TRIGGER trigger_assign_backer_role
   AFTER INSERT ON public.users
   FOR EACH ROW
-  EXECUTE FUNCTION public.assign_backer_role();
-
--- =====================================================
--- Step 6: Create trigger to assign creator role when user publishes first project
--- =====================================================
-
--- Function to assign creator role when project is published
-CREATE OR REPLACE FUNCTION public.assign_creator_role()
-RETURNS TRIGGER AS $$
-BEGIN
-  -- Check if user already has creator role
-  IF NOT EXISTS (
-    SELECT 1 FROM public.user_roles
-    WHERE user_id = NEW.creator_id AND role = 'creator'
-  ) THEN
-    -- Assign creator role to user who published the project
-    INSERT INTO public.user_roles (user_id, role)
-    VALUES (NEW.creator_id, 'creator');
-  END IF;
-
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+  EXECUTE FUNCTION public.assign_backer_role()
+  SECURITY DEFINER;
 
 -- Trigger: Assign creator role when project status changes to approved/live
 DROP TRIGGER IF EXISTS trigger_assign_creator_role ON public.projects;
@@ -174,7 +153,8 @@ CREATE TRIGGER trigger_assign_creator_role
   AFTER UPDATE OF status ON public.projects
   FOR EACH ROW
   WHEN (OLD.status IN ('draft', 'pending_review') AND NEW.status IN ('approved', 'live'))
-  EXECUTE FUNCTION public.assign_creator_role();
+  EXECUTE FUNCTION public.assign_creator_role()
+  SECURITY DEFINER;
 
 -- =====================================================
 -- Step 7: Update RLS policies for multi-role system
@@ -198,14 +178,13 @@ USING (auth.uid() = id)
 WITH CHECK (auth.uid() = id);
 
 -- Policy: Admin can update any profile
-DROP POLICY IF EXISTS "Admin can update any profile" ON public.users;
 CREATE POLICY "Admin can update any profile"
 ON public.users FOR UPDATE
 TO authenticated
 USING (
   EXISTS (
-    SELECT 1 FROM public.user_roles
-    WHERE user_id = auth.uid() AND role = 'admin'
+    SELECT 1 FROM public.user_roles ur
+    WHERE ur.user_id = auth.uid() AND ur.role = 'admin'
   )
 );
 
