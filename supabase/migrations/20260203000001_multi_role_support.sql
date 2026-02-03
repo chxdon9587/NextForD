@@ -34,12 +34,99 @@ INSERT INTO public.user_roles (user_id, role)
 SELECT id, role FROM public.users;
 
 -- =====================================================
--- Step 3: Drop role column from users table
+-- Step 3: Update existing RLS policies that reference users.role
+-- =====================================================
+
+DROP POLICY IF EXISTS "Admins can view all projects" ON public.projects;
+CREATE POLICY "Admins can view all projects"
+  ON public.projects FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_roles
+      WHERE user_id = auth.uid() AND role = 'admin'
+    )
+  );
+
+DROP POLICY IF EXISTS "Creators can insert projects" ON public.projects;
+CREATE POLICY "Creators can insert projects"
+  ON public.projects FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    auth.uid() = creator_id
+    AND EXISTS (
+      SELECT 1 FROM public.user_roles
+      WHERE user_id = auth.uid() AND role IN ('creator', 'admin')
+    )
+  );
+
+DROP POLICY IF EXISTS "Milestones visible with project" ON public.milestones;
+CREATE POLICY "Milestones visible with project"
+  ON public.milestones FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.projects
+      WHERE projects.id = milestones.project_id
+      AND (
+        projects.status IN ('live', 'successful', 'failed')
+        OR projects.creator_id = auth.uid()
+        OR EXISTS (
+          SELECT 1 FROM public.user_roles
+          WHERE user_id = auth.uid() AND role = 'admin'
+        )
+      )
+    )
+  );
+
+DROP POLICY IF EXISTS "Rewards visible with project" ON public.rewards;
+CREATE POLICY "Rewards visible with project"
+  ON public.rewards FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.projects
+      WHERE projects.id = rewards.project_id
+      AND (
+        projects.status IN ('live', 'successful', 'failed')
+        OR projects.creator_id = auth.uid()
+        OR EXISTS (
+          SELECT 1 FROM public.user_roles
+          WHERE user_id = auth.uid() AND role = 'admin'
+        )
+      )
+    )
+  );
+
+DROP POLICY IF EXISTS "Admins can view all backings" ON public.backings;
+CREATE POLICY "Admins can view all backings"
+  ON public.backings FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_roles
+      WHERE user_id = auth.uid() AND role = 'admin'
+    )
+  );
+
+DROP POLICY IF EXISTS "Admins can view all escrow" ON public.escrow_transactions;
+CREATE POLICY "Admins can view all escrow"
+  ON public.escrow_transactions FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_roles
+      WHERE user_id = auth.uid() AND role = 'admin'
+    )
+  );
+
+-- =====================================================
+-- Step 4: Drop role column from users table
 -- =====================================================
 ALTER TABLE public.users DROP COLUMN IF EXISTS role;
 
 -- =====================================================
--- Step 4: Create trigger to assign backer role to new users
+-- Step 5: Create trigger to assign backer role to new users
 -- =====================================================
 
 -- Function to assign backer role to new user
@@ -60,7 +147,7 @@ CREATE TRIGGER trigger_assign_backer_role
   EXECUTE FUNCTION public.assign_backer_role();
 
 -- =====================================================
--- Step 5: Create trigger to assign creator role when user publishes first project
+-- Step 6: Create trigger to assign creator role when user publishes first project
 -- =====================================================
 
 -- Function to assign creator role when project is published
@@ -90,7 +177,7 @@ CREATE TRIGGER trigger_assign_creator_role
   EXECUTE FUNCTION public.assign_creator_role();
 
 -- =====================================================
--- Step 6: Update RLS policies for multi-role system
+-- Step 7: Update RLS policies for multi-role system
 -- =====================================================
 
 -- Drop existing policies that reference the old role column
@@ -123,7 +210,7 @@ USING (
 );
 
 -- =====================================================
--- Step 7: Update user_roles table RLS policies
+-- Step 8: Update user_roles table RLS policies
 -- =====================================================
 
 -- Enable RLS on user_roles
@@ -164,7 +251,7 @@ USING (
 );
 
 -- =====================================================
--- Step 8: Helper functions for role checking
+-- Step 9: Helper functions for role checking
 -- =====================================================
 
 -- Function to check if user has a specific role
@@ -206,21 +293,14 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- =====================================================
--- Step 9: Update other policies that check roles
+-- Step 10: Update other policies that check roles
 -- =====================================================
 
--- Update project policies to use role functions
 DROP POLICY IF EXISTS "Creators can view all their projects" ON public.projects;
 CREATE POLICY "Creators can view all their projects"
 ON public.projects FOR SELECT
 TO authenticated
 USING (creator_id = auth.uid());
-
-DROP POLICY IF EXISTS "Creators can insert projects" ON public.projects;
-CREATE POLICY "Creators can insert projects"
-ON public.projects FOR INSERT
-TO authenticated
-WITH CHECK (creator_id = auth.uid());
 
 DROP POLICY IF EXISTS "Creators can update their own projects" ON public.projects;
 CREATE POLICY "Creators can update their own projects"

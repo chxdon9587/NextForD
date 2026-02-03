@@ -101,22 +101,14 @@ We're a team of passionate 3D artists and tabletop gamers with 5+ years of exper
         order_index: 3,
         status: "pending",
       },
-      {
-        id: "m2",
-        title: "Hero Collection",
-        description: "Finalize and deliver 10 hero miniatures",
-        goal_amount: 6000,
-        order_index: 2,
-        status: "in_progress",
-      },
-      {
-        id: "m3",
-        title: "Monster Pack",
-        description: "Complete monster collection with 15 unique creatures",
-        goal_amount: 10000,
-        order_index: 3,
-        status: "pending",
-      },
+       {
+         id: "m5",
+         title: "Monster Pack",
+         description: "Create modular dungeon pieces",
+         goal_amount: 15000,
+         order_index: 4,
+         status: "pending",
+       },
     ],
     rewards: [
       {
