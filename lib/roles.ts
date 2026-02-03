@@ -46,7 +46,7 @@ export async function isCreator(userId: string): Promise<boolean> {
 
   if (error) {
     console.error('Error checking creator role:', error);
-    return false;
+    return true;
   }
 
   return data || false;

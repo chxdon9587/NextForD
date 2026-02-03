@@ -10,6 +10,8 @@ import { RewardCard } from "@/components/project/reward-card";
 import { MilestoneProgress } from "@/components/milestone/milestone-progress";
 import { CommentThread } from "@/components/comments/comment-thread";
 import { UpdateCard } from "@/components/updates/update-card";
+import CreateUpdateDialog from "@/components/dashboard/create-update";
+import { getProjectUpdates } from "@/app/actions/updates";
 
 interface PageProps {
   params: Promise<{
@@ -21,21 +23,31 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const { slug } = await params;
   const supabase = await createClient();
 
-  const { data: project } = await supabase
-    .from("projects")
-    .select(`
-      *,
-      users!projects_creator_id_fkey (
-        id,
-        username,
-        full_name,
-        avatar_url
-      ),
-      milestones (*),
-      rewards (*)
-    `)
-    .eq("slug", slug)
-    .single();
+  const {
+     data: { user },
+   } = await supabase.auth.getUser();
+
+   const { data: project } = await supabase
+     .from("projects")
+     .select(`
+       *,
+       users!projects_creator_id_fkey (
+         id,
+         username,
+         full_name,
+         avatar_url
+       ),
+       milestones (*),
+       rewards (*)
+     `)
+     .eq("slug", slug)
+     .single();
+
+   if (!project) {
+     notFound();
+   }
+
+   const projectUpdates = await getProjectUpdates(project.id);
 
   const mockProject = {
     id: "1",
@@ -192,10 +204,10 @@ We're a team of passionate 3D artists and tabletop gamers with 5+ years of exper
       id: "u1",
       title: "First Prototypes Are Here! 🎉",
       content: `Exciting news everyone! We've received our first batch of test prints and they look AMAZING.
-
-The detail captured at 28mm scale exceeded our expectations. We've made a few minor adjustments to the hero poses based on early feedback, and the results are perfect.
-
-Photos coming soon in the next update!`,
+ 
+ The detail captured at 28mm scale exceeded our expectations. We've made a few minor adjustments to hero poses based on early feedback, and results are perfect.
+ 
+ Photos coming soon in next update!`,
       createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
       visibility: "public" as const,
       author: {
@@ -204,6 +216,20 @@ Photos coming soon in the next update!`,
       },
     },
   ];
+
+  const updates = projectUpdates && projectUpdates.length > 0
+    ? projectUpdates.map((update: any) => ({
+        id: update.id,
+        title: update.title,
+        content: update.content,
+        createdAt: new Date(update.created_at),
+        visibility: update.visibility,
+        author: {
+          name: displayProject.users.full_name || displayProject.users.username,
+          avatar: displayProject.users.avatar_url,
+        },
+      }))
+    : mockUpdates;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -299,8 +325,15 @@ Photos coming soon in the next update!`,
 
             <div id="updates">
               <h2 className="text-2xl font-bold mb-6">Updates</h2>
+
+              {user && user.id === displayProject.creator_id && (
+                <CreateUpdateDialog
+                  projectId={project.id}
+                />
+              )}
+
               <div className="space-y-6">
-                {mockUpdates.map((update) => (
+                {updates.map((update) => (
                   <UpdateCard key={update.id} {...update} />
                 ))}
               </div>
