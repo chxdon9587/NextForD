@@ -40,8 +40,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER trigger_assign_backer_role
   AFTER INSERT ON public.users
   FOR EACH ROW
-  EXECUTE FUNCTION public.assign_backer_role()
-  SECURITY DEFINER;
+  EXECUTE FUNCTION public.assign_backer_role();
 
 -- Function to assign creator role when user publishes first project (SECURITY DEFINER)
 CREATE OR REPLACE FUNCTION public.assign_creator_role()
@@ -64,8 +63,7 @@ CREATE TRIGGER trigger_assign_creator_role
   AFTER UPDATE OF status ON public.projects
   FOR EACH ROW
   WHEN (OLD.status IN ('draft', 'pending_review') AND NEW.status IN ('approved', 'live'))
-  EXECUTE FUNCTION public.assign_creator_role()
-  SECURITY DEFINER;
+  EXECUTE FUNCTION public.assign_creator_role();
 
 -- =====================================================
 -- Fix RLS policies to avoid circular references
