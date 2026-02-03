@@ -141,7 +141,7 @@ export default function CreatorProjects({ userId }: { userId: string }) {
                   View
                 </Button>
               </Link>
-              {project.status === 'draft' && (
+              {(project.status === 'draft' || project.status === 'pending_review') && (
                 <Link href={`/create?project=${project.id}`} className="flex-1">
                   <Button className="w-full">
                     Edit
