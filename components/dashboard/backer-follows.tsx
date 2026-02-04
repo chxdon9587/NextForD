@@ -83,7 +83,7 @@ export default function BackerFollows({ userId }: { userId: string }) {
       {followings.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-gray-600 text-center">You're not following any creators yet.</p>
+            <p className="text-gray-600 text-center">You are not following any creators yet.</p>
             <Link href="/projects">
               <Button className="mt-4">Discover Projects</Button>
             </Link>
