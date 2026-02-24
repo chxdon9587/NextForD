@@ -11,7 +11,10 @@ import { MilestoneProgress } from "@/components/milestone/milestone-progress";
 import { CommentThread } from "@/components/comments/comment-thread";
 import { UpdateCard } from "@/components/updates/update-card";
 import CreateUpdateDialog from "@/components/dashboard/create-update";
+import LikeButton from "@/components/social/like-button";
 import { getProjectUpdates } from "@/app/actions/updates";
+import { getComments, createComment } from "@/app/actions/comments";
+import { getProjectLikes, toggleLike } from "@/app/actions/likes";
 
 interface PageProps {
   params: Promise<{
@@ -44,12 +47,10 @@ export default async function ProjectDetailPage({ params }: PageProps) {
      .single();
 
    if (!project) {
-     notFound();
-   }
-
-   const projectUpdates = await getProjectUpdates(project.id);
-
-  const mockProject = {
+      notFound();
+    }
+ 
+   const mockProject = {
     id: "1",
     slug: "3d-printed-miniatures",
     title: "Ultra-Detailed 3D Printed Miniatures Collection",
@@ -158,6 +159,22 @@ We're a team of passionate 3D artists and tabletop gamers with 5+ years of exper
 
   const displayProject = project || mockProject;
 
+  const projectUpdates = await getProjectUpdates(displayProject.id);
+  const comments = await getComments(displayProject.id);
+  const likesCount = await getProjectLikes(displayProject.id);
+
+  const mockUpdates: Array<{
+    id: string;
+    title: string;
+    content: string;
+    createdAt: Date;
+    visibility: "public" | "backers_only";
+    author: {
+      name: string;
+      avatar?: string;
+    };
+  }> = [];
+
   const backersCount = displayProject.backer_count || 85;
   const daysLeft = Math.ceil(
     (new Date(displayProject.deadline).getTime() - Date.now()) /
@@ -167,55 +184,12 @@ We're a team of passionate 3D artists and tabletop gamers with 5+ years of exper
   const fundingGoal = displayProject.goal_amount || displayProject.funding_goal || 0;
   const fundingPercentage = (currentFunding / fundingGoal) * 100;
 
-  const projectCurrentFunding = currentFunding;
-  const milestonesWithFunding = displayProject.milestones.map((m: any) => ({
-    ...m,
-    fundingTarget: m.goal_amount || m.funding_target,
-    currentFunding: m.current_amount || (m.status === "verified" ? m.goal_amount : m.status === "in_progress" ? projectCurrentFunding : 0),
-  }));
-
-  const mockComments = [
-    {
-      id: "c1",
-      content: "This looks amazing! Can't wait to print these miniatures. The detail level is incredible!",
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      author: {
-        id: "u1",
-        name: "Sarah K.",
-        avatar: undefined,
-      },
-      replies: [
-        {
-          id: "c1-r1",
-          content: "Thanks for the support! We're working hard to make them perfect.",
-          createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-          author: {
-            id: displayProject.users.id,
-            name: displayProject.users.full_name || displayProject.users.username,
-            avatar: displayProject.users.avatar_url,
-          },
-        },
-      ],
-    },
-  ];
-
-  const mockUpdates = [
-    {
-      id: "u1",
-      title: "First Prototypes Are Here! 🎉",
-      content: `Exciting news everyone! We've received our first batch of test prints and they look AMAZING.
- 
- The detail captured at 28mm scale exceeded our expectations. We've made a few minor adjustments to hero poses based on early feedback, and results are perfect.
- 
- Photos coming soon in next update!`,
-      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      visibility: "public" as const,
-      author: {
-        name: displayProject.users.full_name || displayProject.users.username,
-        avatar: displayProject.users.avatar_url,
-      },
-    },
-  ];
+   const projectCurrentFunding = currentFunding;
+   const milestonesWithFunding = displayProject.milestones.map((m: any) => ({
+     ...m,
+     fundingTarget: m.goal_amount || m.funding_target,
+     currentFunding: m.current_amount || (m.status === "verified" ? m.goal_amount : m.status === "in_progress" ? projectCurrentFunding : 0),
+   }));
 
   const updates = projectUpdates && projectUpdates.length > 0
     ? projectUpdates.map((update: any) => ({
@@ -341,7 +315,7 @@ We're a team of passionate 3D artists and tabletop gamers with 5+ years of exper
 
             <div id="comments">
               <h2 className="text-2xl font-bold mb-6">Discussion</h2>
-              <CommentThread comments={mockComments} />
+              <CommentThread comments={comments} />
             </div>
           </div>
 
@@ -375,26 +349,16 @@ We're a team of passionate 3D artists and tabletop gamers with 5+ years of exper
                     </div>
                   </div>
 
-                  <div className="space-y-2 pt-4 border-t">
-                    <Button className="w-full" size="lg">
-                      Back This Project
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      <svg
-                        className="w-4 h-4 mr-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                        />
-                      </svg>
-                      Save Project
-                    </Button>
+                   <div className="space-y-2 pt-4 border-t">
+                    <Link href={`/projects/${slug}/back`}>
+                      <Button className="w-full" size="lg">
+                        Back This Project
+                      </Button>
+                    </Link>
+                    <LikeButton
+                      projectId={displayProject.id}
+                      initialCount={likesCount}
+                    />
                   </div>
 
                   <p className="text-xs text-center text-muted-foreground pt-4 border-t">

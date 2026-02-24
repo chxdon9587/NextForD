@@ -1,0 +1,263 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { createBacking } from "@/app/actions/backing";
+
+interface PageProps {
+  params: Promise<{
+    slug: string;
+  }>;
+}
+
+export default async function BackProjectPage({ params }: PageProps) {
+  const { slug } = await params;
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login?redirect=/projects/" + slug + "/back");
+  }
+
+  const { data: project, error } = await supabase
+    .from("projects")
+    .select(`
+      *,
+      users!projects_creator_id_fkey (
+        id,
+        username,
+        full_name,
+        avatar_url
+      ),
+      rewards (*)
+    `)
+    .eq("slug", slug)
+    .single();
+
+  if (error || !project) {
+    redirect("/projects");
+  }
+
+  const backersCount = project.backer_count || 0;
+  const fundingGoal = project.goal_amount || 0;
+  const currentFunding = project.current_amount || 0;
+  const fundingPercentage = (currentFunding / fundingGoal) * 100;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-white border-b">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            Backing: {project.title}
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Project Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="prose max-w-none">
+                  <p className="mb-4">
+                    You are about to back <strong>{project.title}</strong> by <strong>{project.users.full_name || project.users.username}</strong>.
+                  </p>
+
+                  <div className="mb-6">
+                    <div className="text-2xl font-bold text-primary-600 mb-2">
+                      ${currentFunding.toLocaleString()}
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      of ${fundingGoal.toLocaleString()} goal ({fundingPercentage.toFixed(1)}%)
+                    </p>
+                    <Progress
+                      value={currentFunding}
+                      max={fundingGoal}
+                      className="h-3"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                      <div className="text-xl font-bold">{backersCount}</div>
+                      <p className="text-sm text-muted-foreground">backers</p>
+                    </div>
+                    <div>
+                      <div className="text-xl font-bold">
+                        {Math.ceil(
+                          (new Date(project.deadline).getTime() - Date.now()) /
+                            (1000 * 60 * 60 * 24)
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">days left</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Rewards</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form action={async (formData: FormData) => {
+                  const projectId = formData.get("projectId") as string;
+                  const rewardId = formData.get("rewardId") as string;
+                  const amount = parseFloat(formData.get("amount") as string);
+
+                  const result = await createBacking({
+                    projectId,
+                    rewardId: rewardId || null,
+                    amount,
+                  });
+
+                  if (result.error) {
+                    return { error: result.error };
+                  } else {
+                    redirect("/dashboard");
+                  }
+                }}>
+                  <input type="hidden" name="projectId" value={project.id} />
+                  
+                  <div className="space-y-4">
+                    {project.rewards && project.rewards.length > 0 ? (
+                      project.rewards.map((reward: any) => (
+                        <label
+                          key={reward.id}
+                          className="block p-4 border rounded-lg cursor-pointer hover:border-primary-600 transition-colors"
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <input
+                                  type="radio"
+                                  name="rewardId"
+                                  value={reward.id}
+                                  className="mt-1"
+                                />
+                                <h3 className="font-semibold">{reward.title}</h3>
+                              </div>
+                              <p className="text-sm text-gray-600 whitespace-pre-wrap mb-2">
+                                {reward.description}
+                              </p>
+                              <div className="flex items-center gap-4 text-sm">
+                                <span className="text-lg font-bold text-primary-600">
+                                  ${reward.amount.toLocaleString()}
+                                </span>
+                                {reward.quantity_total && (
+                                  <span className="text-gray-600">
+                                    {reward.quantity_total - reward.quantity_claimed} of {reward.quantity_total} available
+                                  </span>
+                                )}
+                              </div>
+                              {reward.estimated_delivery && (
+                                <p className="text-xs text-gray-600 mt-2">
+                                  Estimated delivery: {new Date(reward.estimated_delivery).toLocaleDateString()}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </label>
+                      ))
+                    ) : (
+                      <p className="text-gray-600 text-center py-8">
+                        No rewards available for this project.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="mt-6 pt-6 border-t">
+                    <h3 className="font-semibold mb-4">Back Amount (Optional)</h3>
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-2">
+                        Custom Amount (Minimum: $1)
+                      </label>
+                      <input
+                        type="number"
+                        name="amount"
+                        min="1"
+                        step="1"
+                        defaultValue="10"
+                        className="w-full px-3 py-2 border rounded-md"
+                        placeholder="Enter amount"
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      size="lg"
+                    >
+                      Back This Project
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="lg:col-span-1">
+            <div className="sticky top-4 space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>About the Creator</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold text-lg">
+                      {project.users.username[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <div className="font-semibold">
+                        {project.users.full_name || project.users.username}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        @{project.users.username}
+                      </div>
+                    </div>
+                  </div>
+                  <Button variant="outline" className="w-full" size="sm">
+                    View Profile
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Why Back?</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary-600">✓</span>
+                      <span>Support innovative 3D printing projects</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary-600">✓</span>
+                      <span>Get exclusive rewards</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary-600">✓</span>
+                      <span>Follow project updates</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary-600">✓</span>
+                      <span>Funds released as milestones are met</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
